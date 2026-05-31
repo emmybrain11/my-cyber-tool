@@ -30,7 +30,7 @@ load_dotenv(DOTENV_FILE)
 APP_SECRET = os.getenv("APP_SECRET", "devsecret")
 ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@example.com")
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "adminpass")
-ALLOW_SCRIPT_EXECUTION = os.getenv("ALLOW_SCRIPT_EXECUTION", "0") == "1"
+ALLOW_SCRIPT_EXECUTION = os.getenv("ALLOW_SCRIPT_EXECUTION", "1") == "1"
 JWT_ALGORITHM = "HS256"
 SESSION_COOKIE = "sentinel_sid"
 
@@ -165,9 +165,23 @@ def _serialize_user(user: Dict[str, Any]) -> Dict[str, Any]:
     return {k: v for k, v in user.items() if k != "passwordHash"}
 
 
-def _exec_command(command: str) -> Dict[str, Any]:
+def _resolve_workspace_path(path: Optional[str]) -> Path:
+    if not path:
+        return WORKSPACE_DIR
+    target_path = Path(path)
+    if not target_path.is_absolute():
+        target_path = WORKSPACE_DIR / target_path
+    target_path = target_path.resolve()
+    if WORKSPACE_DIR not in target_path.parents and target_path != WORKSPACE_DIR:
+        raise HTTPException(status_code=400, detail="repo_path must be inside the workspace.")
+    if not target_path.exists():
+        raise HTTPException(status_code=400, detail=f"Workspace path does not exist: {target_path}")
+    return target_path
+
+
+def _exec_command(command: str, cwd: Optional[Path] = None) -> Dict[str, Any]:
     shell = os.name == "nt"
-    result = subprocess.run(command, shell=shell, capture_output=True, text=True, cwd=str(WORKSPACE_DIR), timeout=120)
+    result = subprocess.run(command, shell=shell, capture_output=True, text=True, cwd=str(cwd or WORKSPACE_DIR), timeout=120)
     return {
         "command": command,
         "stdout": result.stdout.strip() if result.stdout else "",
@@ -303,6 +317,9 @@ def _handle_python_run(input_data: Dict[str, Any], request: Request, response: R
     _require_authenticated(_current_user(request))
     if not input_data.get("command") and not input_data.get("tool"):
         raise HTTPException(status_code=400, detail="command or tool is required")
+    cwd = WORKSPACE_DIR
+    if input_data.get("repo_path"):
+        cwd = _resolve_workspace_path(str(input_data.get("repo_path")))
     if input_data.get("tool"):
         tools = _get_python_tools()
         tool = next((item for item in tools if item.get("name") == input_data["tool"]), None)
@@ -311,8 +328,8 @@ def _handle_python_run(input_data: Dict[str, Any], request: Request, response: R
         command = tool.get("command", "").replace("{args}", str(input_data.get("args", "")))
         if "{repo_url}" in command or "{target_dir}" in command:
             raise HTTPException(status_code=400, detail="Tool command requires repository or target_dir substitution.")
-        return _exec_command(command)
-    return _exec_command(str(input_data.get("command", "")))
+        return _exec_command(command, cwd=cwd)
+    return _exec_command(str(input_data.get("command", "")), cwd=cwd)
 
 
 def _handle_tools_exec(input_data: Dict[str, Any], request: Request, response: Response) -> Dict[str, Any]:
@@ -674,10 +691,19 @@ def clone_repo(payload: Dict[str, Any]):
     destination = WORKSPACE_DIR / target_name
     if destination.exists():
         raise HTTPException(status_code=400, detail=f"Destination already exists: {destination}")
+    branch = payload.get("branch")
+    if branch:
+        command = ["git", "clone", "--branch", branch, payload["repo_url"], str(destination)]
+        result = subprocess.run(command, capture_output=True, text=True)
+        if result.returncode != 0:
+            # Fallback to default remote branch when the requested branch does not exist
+            command = ["git", "clone", payload["repo_url"], str(destination)]
+            result = subprocess.run(command, capture_output=True, text=True)
+            stderr = result.stderr or ""
+            if result.returncode == 0:
+                stderr = f"Branch '{branch}' not found; cloned default branch instead.\n{stderr}".strip()
+            return {"command": " ".join(shlex.quote(arg) for arg in command), "stdout": result.stdout, "stderr": stderr, "exit_code": result.returncode}
     command = ["git", "clone", payload["repo_url"], str(destination)]
-    if payload.get("branch"):
-        command.insert(2, "--branch")
-        command.insert(3, payload["branch"])
     result = subprocess.run(command, capture_output=True, text=True)
     return {"command": " ".join(shlex.quote(arg) for arg in command), "stdout": result.stdout, "stderr": result.stderr, "exit_code": result.returncode}
 
