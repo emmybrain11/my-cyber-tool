@@ -1,0 +1,40 @@
+version: '3.8'
+services:
+  app:
+    build: .
+    image: emmy-app:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    depends_on:
+      - db
+    networks:
+      - lab_net
+  db:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: example
+      MYSQL_DATABASE: emmy
+      MYSQL_USER: emmy
+      MYSQL_PASSWORD: emmy_pass
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - lab_net
+  scanner:
+    build: ./scanner
+    image: emmy-scanner:latest
+    networks:
+      - lab_net
+    stdin_open: true
+    tty: true
+    # scanner is intentionally not exposing ports and will not run scans unless ALLOW_SCANS=1
+
+volumes:
+  db_data:
+
+networks:
+  lab_net:
+    driver: bridge

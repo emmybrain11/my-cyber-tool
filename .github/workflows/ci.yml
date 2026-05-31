@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install dependencies
+        run: |
+          cd app
+          npm ci
+      - name: Build
+        run: |
+          cd app
+          npm run build
+      - name: Archive build
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-dist
+          path: app/dist

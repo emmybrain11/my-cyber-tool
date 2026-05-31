@@ -1,0 +1,198 @@
+[
+  {
+    "name": "nmap",
+    "category": "offense",
+    "description": "Network and web service discovery for website and host reconnaissance.",
+    "command": "nmap {args}",
+    "example": "-sV -p- example.com"
+  },
+  {
+    "name": "masscan",
+    "category": "offense",
+    "description": "High-speed port scanning for large networks and web ranges.",
+    "command": "masscan {args}",
+    "example": "example.com -p80,443 --rate=1000"
+  },
+  {
+    "name": "nikto",
+    "category": "offense",
+    "description": "Web vulnerability scanner for common website security issues.",
+    "command": "nikto {args}",
+    "example": "-h http://example.com"
+  },
+  {
+    "name": "sqlmap",
+    "category": "offense",
+    "description": "Automated SQL injection and database takeover testing for web forms.",
+    "command": "sqlmap {args}",
+    "example": "-u 'http://example.com/page?id=1' --batch"
+  },
+  {
+    "name": "gobuster",
+    "category": "offense",
+    "description": "Directory and content enumeration for hidden website paths.",
+    "command": "gobuster dir {args}",
+    "example": "-u http://example.com -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt"
+  },
+  {
+    "name": "wpscan",
+    "category": "offense",
+    "description": "WordPress vulnerability and plugin enumeration.",
+    "command": "wpscan {args}",
+    "example": "--url http://example.com --enumerate vp"
+  },
+  {
+    "name": "openssl",
+    "category": "crypto",
+    "description": "Encrypt or decrypt files securely with OpenSSL using AES or other ciphers.",
+    "command": "openssl {args}",
+    "example": "enc -aes-256-cbc -salt -in secret.txt -out secret.enc -k password"
+  },
+  {
+    "name": "gpg",
+    "category": "crypto",
+    "description": "Encrypt, decrypt, sign, and verify files with GPG.",
+    "command": "gpg {args}",
+    "example": "--symmetric --cipher-algo AES256 --output secret.gpg --passphrase password secret.txt"
+  },
+  {
+    "name": "steghide",
+    "category": "stego",
+    "description": "Hide or extract secret content from image and audio carriers.",
+    "command": "steghide {args}",
+    "example": "embed -cf cover.jpg -ef secret.txt -sf out.jpg -p password"
+  },
+  {
+    "name": "zsteg",
+    "category": "stego",
+    "description": "Inspect PNG/BMP images for hidden embedded content.",
+    "command": "zsteg {args}",
+    "example": "cover.png"
+  },
+  {
+    "name": "binwalk",
+    "category": "stego",
+    "description": "Detect and extract embedded files from carrier images or binaries.",
+    "command": "binwalk {args}",
+    "example": "-e cover.png"
+  },
+  {
+    "name": "theHarvester",
+    "category": "osint",
+    "description": "Gather email addresses, subdomains, hosts, names and profiles from public sources.",
+    "command": "theHarvester {args}",
+    "example": "-d example.com -b all"
+  },
+  {
+    "name": "sherlock",
+    "category": "osint",
+    "description": "Search for a username across hundreds of social networks.",
+    "command": "sherlock {args}",
+    "example": "exampleuser"
+  },
+  {
+    "name": "recon-ng",
+    "category": "osint",
+    "description": "Run Recon-ng modules for domain, email, username, and profile intelligence gathering.",
+    "command": "recon-ng {args}",
+    "example": "-m recon/domains-contacts/whois_pocs"
+  },
+  {
+    "name": "metagoofil",
+    "category": "osint",
+    "description": "Extract metadata from public documents to reveal usernames, emails, and server details.",
+    "command": "metagoofil {args}",
+    "example": "-d example.com -t pdf,doc,xls -l 50 -p /tmp/output"
+  },
+  {
+    "name": "exiftool",
+    "category": "osint",
+    "description": "Inspect image metadata and extract hidden information from profile pictures.",
+    "command": "exiftool {args}",
+    "example": "-a -u -g1 /workspace/profile.jpg"
+  },
+  {
+    "name": "snort",
+    "category": "defense",
+    "description": "Network IDS for detecting exploit traffic and defending web services.",
+    "command": "snort {args}",
+    "example": "-A console -q -c /etc/snort/snort.conf"
+  },
+  {
+    "name": "suricata",
+    "category": "defense",
+    "description": "IDS/IPS engine for detecting web attacks and malicious payloads.",
+    "command": "suricata {args}",
+    "example": "-c /etc/suricata/suricata.yaml -i eth0"
+  },
+  {
+    "name": "osquery",
+    "category": "defense",
+    "description": "Host visibility for endpoint integrity and file/system monitoring.",
+    "command": "osqueryi {args}",
+    "example": "--json 'select * from processes where name = \"curl\";'"
+  },
+  {
+    "name": "auditctl",
+    "category": "defense",
+    "description": "Linux audit framework for recording suspicious access and execution.",
+    "command": "auditctl {args}",
+    "example": "-w /var/www/html -p wa -k webwatch"
+  },
+  {
+    "name": "fail2ban-client",
+    "category": "defense",
+    "description": "Automate blocking of repeated malicious login attempts.",
+    "command": "fail2ban-client {args}",
+    "example": "status nginx-http-auth"
+  },
+  {
+    "name": "clamav",
+    "category": "defense",
+    "description": "Malware signature scanning for downloaded files and tool repos.",
+    "command": "clamscan {args}",
+    "example": "-r /workspace/theZoo/samples"
+  },
+  {
+    "name": "git-clone",
+    "category": "utility",
+    "description": "Clone a GitHub tool repo into the lab workspace for customization.",
+    "command": "git clone {args}",
+    "example": "https://github.com/ytisf/theZoo.git /workspace/theZoo"
+  },
+  {
+    "name": "python",
+    "category": "utility",
+    "description": "Run a Python script or module for custom analysis or malware lab tooling.",
+    "command": "python3 {args}",
+    "example": "-m http.server 8000"
+  },
+  {
+    "name": "metasploit",
+    "category": "offense",
+    "description": "Launch Metasploit for exploit development, payload creation, and web exploit testing.",
+    "command": "msfconsole {args}",
+    "example": "-q"
+  },
+  {
+    "name": "setoolkit",
+    "category": "offense",
+    "description": "Social engineering toolkit for phishing and web-based exploit simulations.",
+    "command": "setoolkit {args}",
+    "example": ""
+  },
+  {
+    "name": "strings",
+    "category": "analysis",
+    "description": "Inspect binary data or malware samples for embedded text and indicators.",
+    "command": "strings {args}",
+    "example": "/workspace/theZoo/samples/sample.exe | head"
+  },
+  {
+    "name": "yara",
+    "category": "analysis",
+    "description": "Scan files for malware patterns using YARA rules.",
+    "command": "yara {args}",
+    "example": "/workspace/rules.yar /workspace/theZoo/samples"
+  }
+]

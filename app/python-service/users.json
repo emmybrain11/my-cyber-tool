@@ -1,0 +1,123 @@
+[
+  {
+    "id": 1,
+    "unionId": "admin@example.com",
+    "email": "admin@example.com",
+    "name": "Admin",
+    "passwordHash": "$5$rounds=535000$XYk31JfdMVpfOnsO$OceTN6M1TQpRvQ8Gb5C9D3ITlSVuxkWEDX4mzYqtNcC",
+    "approved": 1,
+    "role": "admin",
+    "createdAt": "2026-05-29T12:24:51.865397",
+    "lastSignInAt": null
+  },
+  {
+    "id": 2,
+    "unionId": "test@example.com",
+    "email": "test@example.com",
+    "name": "Test User",
+    "passwordHash": "$5$rounds=535000$.v9vD/U55h3/Wz1p$N1lxxHjBW8uqJFMqoJjtosRBfn.9kHtTG1zHSUAdZh.",
+    "approved": 0,
+    "role": "user",
+    "createdAt": "2026-05-29T12:24:53.683084",
+    "lastSignInAt": null
+  },
+  {
+    "id": 3,
+    "unionId": "test2@example.com",
+    "email": "test2@example.com",
+    "name": "Test User",
+    "passwordHash": "$5$rounds=535000$CFsEI5GGe.Bt05Df$x.JPj4seIrSDCS54bxZf7XmzVxUSCT/C3SwSHuFM8R9",
+    "approved": 0,
+    "role": "user",
+    "createdAt": "2026-05-30T20:46:22.508962",
+    "lastSignInAt": null
+  },
+  {
+    "id": 4,
+    "unionId": "testui+1780174555668@example.com",
+    "email": "testui+1780174555668@example.com",
+    "name": "Test User",
+    "passwordHash": "$5$rounds=535000$pn3gLMPvVG4d4tFc$GAmTOWvb2voXwj2TwBPD6qFcT0L9WSRtaRkDjGmcRS6",
+    "approved": 0,
+    "role": "user",
+    "createdAt": "2026-05-30T20:56:06.058308",
+    "lastSignInAt": null
+  },
+  {
+    "id": 5,
+    "unionId": "bemm7754@gmail.com",
+    "email": "bemm7754@gmail.com",
+    "name": "bello emmanuel",
+    "passwordHash": "$5$rounds=535000$lJC5qFKbj/gfmSGZ$K10Mzr43PE/A7/bkNYfZye.GWj0xQYNxuhS4tdxEBIB",
+    "approved": 0,
+    "role": "user",
+    "createdAt": "2026-05-30T21:00:03.807906",
+    "lastSignInAt": null
+  },
+  {
+    "id": 6,
+    "unionId": "bemm7753@gmail.com",
+    "email": "bemm7753@gmail.com",
+    "name": "emmanuel",
+    "passwordHash": "$5$rounds=535000$/AjZa.a4tC6l9m4M$R6AmdU/T85YXSIYirxBc2NbIq2YfXdhvym25yaHJwMB",
+    "approved": 0,
+    "role": "user",
+    "createdAt": "2026-05-30T21:01:56.756317",
+    "lastSignInAt": null
+  },
+  {
+    "id": 7,
+    "unionId": "bello.emmanuel.bello@binghamuni.edu.ng",
+    "email": "bello.emmanuel.bello@binghamuni.edu.ng",
+    "name": "bello emmanuel",
+    "passwordHash": "$5$rounds=535000$O44GJd7Zg7CMzcRx$YX/bRANMpKAgkgHMpmyJ8jW19uf8fHpMm/egS8e/MZ1",
+    "approved": 0,
+    "role": "user",
+    "createdAt": "2026-05-30T21:04:29.555919",
+    "lastSignInAt": null
+  },
+  {
+    "id": 8,
+    "unionId": "testuser1780177920@example.com",
+    "email": "testuser1780177920@example.com",
+    "name": "Test User",
+    "passwordHash": "$5$rounds=535000$oYtezrkig74AV4zR$0ZQWVZFJpg1BhmbvQNXcYljS3yoB/ees52vuey1PsT2",
+    "approved": 1,
+    "role": "user",
+    "createdAt": "2026-05-30T21:52:03.620386",
+    "lastSignInAt": null
+  },
+  {
+    "id": 9,
+    "unionId": "approvaltest1780178003@example.com",
+    "email": "approvaltest1780178003@example.com",
+    "name": "Approval Test",
+    "passwordHash": "$5$rounds=535000$ZHhqeJKwEkOaZ1ot$gUPVlacP/DSWxDM7DwX1TmBDSYznA2g1/pceI2UiarD",
+    "approved": 0,
+    "role": "user",
+    "createdAt": "2026-05-30T21:53:25.404502",
+    "lastSignInAt": null
+  },
+  {
+    "id": 10,
+    "unionId": "approvaltest1780178050@example.com",
+    "email": "approvaltest1780178050@example.com",
+    "name": "Approval Test",
+    "passwordHash": "$5$rounds=535000$59.O3rNojTdamb6o$C0.4Q.gyeoQFL.EWBmbA9kRr6xqSZatTQoFNCAaAD67",
+    "approved": 0,
+    "role": "user",
+    "createdAt": "2026-05-30T21:54:14.564688",
+    "lastSignInAt": null
+  },
+  {
+    "id": 11,
+    "unionId": "approvaltest1780178120@example.com",
+    "email": "approvaltest1780178120@example.com",
+    "name": "Approval Test",
+    "passwordHash": "$5$rounds=535000$OIgDopoOYaJ8Al48$XL/yLIxp6lz44bH9o6vNGGcLVHpTCjj/torp4KAYaaC",
+    "approved": 1,
+    "role": "admin",
+    "createdAt": "2026-05-30T21:55:24.683619",
+    "lastSignInAt": null
+  }
+]

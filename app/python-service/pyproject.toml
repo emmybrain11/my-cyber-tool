@@ -1,0 +1,16 @@
+[project]
+name = "sentinel-python-service"
+version = "0.1.0"
+description = "Python backend for Sentinel Cyber Lab: repo cloning, tool execution, and Ollama integration."
+requires-python = ">=3.11"
+
+[project.dependencies]
+fastapi = "^0.109.2"
+uvicorn = {extras = ["standard"], version = "^0.23.2"}
+python-multipart = "^0.0.6"
+python-dotenv = "^1.0.0"
+requests = "^2.31.0"
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"

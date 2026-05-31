@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.venv/
+app/.venv/
+*.env
+.env
+pip-wheel-metadata/
+*.egg-info/
+
+# Node / frontend
+node_modules/
+dist/
+.vite/
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
