@@ -12,7 +12,7 @@ npm install
 npm run build:package
 ```
 
-This will create a `release/` folder containing:
+This will create a `release/` folder and a `release.zip` package containing:
 
 - `launcher.exe` — starts the app
 - `python-service.exe` — Python backend service

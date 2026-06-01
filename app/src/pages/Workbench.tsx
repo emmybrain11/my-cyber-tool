@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { trpc } from "@/providers/trpc";
 import { Button } from "@/components/ui/button";
 
@@ -6,7 +6,7 @@ export default function Workbench() {
   const [script, setScript] = useState("# Write your payload, scan command, or defensive script here\n");
   const [scriptOutput, setScriptOutput] = useState<string>("");
   const [repoUrl, setRepoUrl] = useState("https://github.com/");
-  const [branch, setBranch] = useState("main");
+  const [branch, setBranch] = useState("");
   const [targetDir, setTargetDir] = useState("my-repo");
   const [selectedTool, setSelectedTool] = useState<string>("");
   const [toolArgs, setToolArgs] = useState("--help");
@@ -199,6 +199,70 @@ export default function Workbench() {
     },
   });
 
+  const wsRef = useRef<WebSocket | null>(null);
+
+  async function streamCommand(payload: Record<string, any>, append: (s: string) => void, onFinish?: (code: number | null) => void) {
+    const tryPaths = ["/pyapi/ws/run", "/ws/run"];
+    let ws: WebSocket | null = null;
+    for (const p of tryPaths) {
+      try {
+        const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+        const host = window.location.host;
+        const url = p.startsWith("http") ? p : `${protocol}//${host}${p}`;
+        ws = new WebSocket(url);
+        await new Promise<void>((resolve, reject) => {
+          const t = setTimeout(() => reject(new Error("timeout")), 3000);
+          ws!.onopen = () => {
+            clearTimeout(t);
+            resolve();
+          };
+          ws!.onerror = () => {
+            clearTimeout(t);
+            reject(new Error("ws error"));
+          };
+        });
+        break;
+      } catch (e) {
+        if (ws) {
+          try { ws.close(); } catch {};
+        }
+        ws = null;
+        continue;
+      }
+    }
+    if (!ws) {
+      throw new Error("Unable to open WebSocket to backend");
+    }
+    wsRef.current = ws;
+
+    ws.onmessage = (ev) => {
+      try {
+        const data = JSON.parse(ev.data as string);
+        if (data.type === "stdout") {
+          append(data.line + "\n");
+        } else if (data.type === "error") {
+          append(`Error: ${data.message}\n`);
+        } else if (data.type === "exit") {
+          append(`[exit ${data.exit_code}]\n`);
+          if (onFinish) onFinish(data.exit_code);
+          try { ws.close(); } catch {};
+        }
+      } catch (e) {
+        append(String(ev.data) + "\n");
+      }
+    };
+
+    ws.onclose = () => {
+      wsRef.current = null;
+    };
+
+    ws.onerror = () => {
+      append("WebSocket error\n");
+    };
+
+    ws.send(JSON.stringify(payload));
+  }
+
   const isRunPending = runMutation.status === "pending";
   const isClonePending = cloneMutation.status === "pending";
   const isRunToolPending = runToolMutation.status === "pending";
@@ -227,8 +291,20 @@ export default function Workbench() {
                 className="h-[240px] w-full resize-none rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-primary)] p-4 font-mono text-sm leading-6 text-[var(--text-primary)] outline-none"
               />
               <div className="mt-4 flex items-center gap-3 flex-wrap">
-                <Button onClick={() => runMutation.mutate({ script })} disabled={isRunPending}>
-                  {isRunPending ? "Running..." : "Execute Script"}
+                <Button
+                  onClick={() => {
+                    setScriptOutput("");
+                    (async () => {
+                      try {
+                        setScriptOutput((s) => s + `> ${script}\n`);
+                        await streamCommand({ command: script }, (line) => setScriptOutput((s) => s + line,));
+                      } catch (err: any) {
+                        setScriptOutput((s) => s + `Error: ${err?.message || String(err)}\n`);
+                      }
+                    })();
+                  }}
+                >
+                  Execute Script
                 </Button>
                 <span className="text-xs text-[var(--text-muted)]">
                   Script execution is controlled by `ALLOW_SCRIPT_EXECUTION=1` in the environment.
@@ -406,11 +482,19 @@ export default function Workbench() {
                 <Button
                   onClick={() => {
                     if (!selectedTool) return;
-                    runToolMutation.mutate({ toolName: selectedTool, args: toolArgs, repoPath: toolRepoPath || undefined });
+                    setToolOutput("");
+                    (async () => {
+                      try {
+                        setToolOutput((s) => s + `> ${currentTool?.command}\n`);
+                        await streamCommand({ tool: selectedTool, args: toolArgs, repo_path: toolRepoPath || undefined }, (line) => setToolOutput((s) => s + line));
+                      } catch (err: any) {
+                        setToolOutput((s) => s + `Error: ${err?.message || String(err)}\n`);
+                      }
+                    })();
                   }}
-                  disabled={isRunToolPending || !selectedTool}
+                  disabled={!selectedTool}
                 >
-                  {isRunToolPending ? "Running tool..." : "Run Selected Tool"}
+                  Run Selected Tool
                 </Button>
                 <div className="rounded-2xl bg-[var(--bg-primary)] p-4 font-mono text-sm leading-6 text-[var(--text-secondary)] whitespace-pre-wrap min-h-[120px]">
                   {toolOutput || "Tool execution output will appear here."}
@@ -428,10 +512,19 @@ export default function Workbench() {
                   placeholder="Enter a custom command to run through the Python service"
                 />
                 <Button
-                  onClick={() => runCustomCommandMutation.mutate({ command: customCommand, repoPath: toolRepoPath || undefined })}
-                  disabled={isRunCustomPending}
+                  onClick={() => {
+                    setToolOutput("");
+                    (async () => {
+                      try {
+                        setToolOutput((s) => s + `> ${customCommand}\n`);
+                        await streamCommand({ command: customCommand, repo_path: toolRepoPath || undefined }, (line) => setToolOutput((s) => s + line));
+                      } catch (err: any) {
+                        setToolOutput((s) => s + `Error: ${err?.message || String(err)}\n`);
+                      }
+                    })();
+                  }}
                 >
-                  {isRunCustomPending ? "Running custom command..." : "Run Custom Command"}
+                  Run Custom Command
                 </Button>
                 {toolError ? <div className="text-sm text-[var(--text-danger)]">{toolError}</div> : null}
               </div>

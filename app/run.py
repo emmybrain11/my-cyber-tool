@@ -105,6 +105,7 @@ def run_python_service(backend_host: str, backend_port: int) -> subprocess.Popen
     python_exe = get_python_executable()
     env = os.environ.copy()
     env["PYTHON_SERVICE_URL"] = f"http://{backend_host}:{backend_port}"
+    env["ALLOW_SCRIPT_EXECUTION"] = os.environ.get("ALLOW_SCRIPT_EXECUTION", "1")
     log(f"Starting Python backend service on {backend_host}:{backend_port}.")
     return subprocess.Popen(
         [
@@ -144,6 +145,7 @@ def run_frontend(frontend_port: int, frontend_host: str, backend_host: str, back
         raise RuntimeError("npm is required to start the frontend.")
     env = os.environ.copy()
     env["PYTHON_SERVICE_URL"] = f"http://{backend_host}:{backend_port}"
+    env["ALLOW_SCRIPT_EXECUTION"] = os.environ.get("ALLOW_SCRIPT_EXECUTION", "1")
     log(f"Starting Vite frontend server on {frontend_host}:{frontend_port}.")
     return subprocess.Popen(
         [str(npm_exe), "run", "dev", "--", "--host", frontend_host, "--port", str(frontend_port)],

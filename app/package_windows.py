@@ -9,6 +9,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 PYTHON_SERVICE_DIR = ROOT / "python-service"
 RELEASE_DIR = ROOT / "release"
+RELEASE_ZIP = ROOT / "release.zip"
 DIST_DIR = ROOT / "dist"
 LAUNCHER_SCRIPT = ROOT / "launcher.py"
 RELEASE_NODE_EXE = RELEASE_DIR / "node.exe"
@@ -94,6 +95,13 @@ def prepare_release():
         if sample_env.exists():
             shutil.copy(sample_env, RELEASE_DIR / ".env")
             log("Copied .env.example to release folder as .env.")
+    # write release version metadata (CI can set GITHUB_RUN_ID or GITHUB_SHA)
+    release_version = os.environ.get("GITHUB_RUN_ID") or os.environ.get("GITHUB_SHA") or str(int(time.time()))
+    try:
+        (RELEASE_DIR / "release_version.txt").write_text(str(release_version), encoding="utf-8")
+        log(f"Wrote release_version: {release_version}")
+    except Exception:
+        log("Unable to write release_version.txt")
 
 
 def copy_node_runtime():
@@ -157,6 +165,14 @@ def build_launcher_exe():
     )
 
 
+def create_release_zip():
+    log("Creating release.zip distributable package.")
+    if RELEASE_ZIP.exists():
+        RELEASE_ZIP.unlink()
+    shutil.make_archive(str(RELEASE_ZIP.with_suffix("")), "zip", root_dir=RELEASE_DIR)
+    log(f"Created release package: {RELEASE_ZIP}")
+
+
 def main() -> int:
     check_executable("node")
     check_executable("npm")
@@ -169,9 +185,10 @@ def main() -> int:
     install_pyinstaller()
     build_python_service_exe()
     build_launcher_exe()
+    create_release_zip()
 
     log("Release package created in the release/ folder.")
-    log("Distribute the release folder to Windows laptops and run launcher.exe.")
+    log(f"Distribute the release.zip file to Windows laptops and extract it.")
     return 0
 
 

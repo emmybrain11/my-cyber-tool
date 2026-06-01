@@ -7,7 +7,8 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, Request, Response
+from fastapi import FastAPI, HTTPException, Request, Response, WebSocket, WebSocketDisconnect
+import asyncio
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -340,6 +341,97 @@ def _handle_tools_exec(input_data: Dict[str, Any], request: Request, response: R
     if not command:
         raise HTTPException(status_code=400, detail="script is required")
     return _exec_command(command)
+
+
+async def _websocket_current_user(websocket: WebSocket) -> Optional[Dict[str, Any]]:
+    cookie_header = websocket.headers.get("cookie") or ""
+    token = None
+    for part in cookie_header.split(";"):
+        if not part:
+            continue
+        kv = part.strip().split("=", 1)
+        if len(kv) == 2 and kv[0] == SESSION_COOKIE:
+            token = kv[1]
+            break
+    if not token:
+        return None
+    payload = _verify_token(token)
+    if not payload:
+        return None
+    return _find_user_by_union_id(str(payload.get("unionId", "")))
+
+
+@app.websocket("/ws/run")
+async def websocket_run(websocket: WebSocket):
+    await websocket.accept()
+    proc = None
+    try:
+        msg = await websocket.receive_json()
+        user = await _websocket_current_user(websocket)
+        if not user:
+            await websocket.send_json({"type": "error", "message": "Unauthenticated"})
+            await websocket.close()
+            return
+        if not ALLOW_SCRIPT_EXECUTION:
+            await websocket.send_json({"type": "error", "message": "Script execution is disabled on server."})
+            await websocket.close()
+            return
+
+        # determine command
+        if msg.get("tool"):
+            tools = _get_python_tools()
+            tool = next((t for t in tools if t.get("name") == msg["tool"]), None)
+            if not tool:
+                await websocket.send_json({"type": "error", "message": "Tool not found"})
+                await websocket.close()
+                return
+            command = tool.get("command", "").replace("{args}", str(msg.get("args", "")))
+        else:
+            command = str(msg.get("command", ""))
+
+        cwd = WORKSPACE_DIR
+        if msg.get("repo_path"):
+            try:
+                cwd = _resolve_workspace_path(str(msg.get("repo_path")))
+            except HTTPException as exc:
+                await websocket.send_json({"type": "error", "message": exc.detail})
+                await websocket.close()
+                return
+
+        # start subprocess and stream stdout/stderr
+        proc = await asyncio.create_subprocess_shell(
+            command,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.STDOUT,
+            cwd=str(cwd),
+        )
+
+        assert proc.stdout is not None
+        while True:
+            line = await proc.stdout.readline()
+            if not line:
+                break
+            try:
+                text = line.decode(errors="replace").rstrip()
+            except Exception:
+                text = str(line)
+            await websocket.send_json({"type": "stdout", "line": text})
+
+        rc = await proc.wait()
+        await websocket.send_json({"type": "exit", "exit_code": rc})
+        await websocket.close()
+    except WebSocketDisconnect:
+        if proc and proc.returncode is None:
+            try:
+                proc.kill()
+            except Exception:
+                pass
+    except Exception as exc:
+        try:
+            await websocket.send_json({"type": "error", "message": str(exc)})
+            await websocket.close()
+        except Exception:
+            pass
 
 
 def _handle_ai_chat(input_data: Dict[str, Any], request: Request, response: Response) -> Dict[str, Any]:
