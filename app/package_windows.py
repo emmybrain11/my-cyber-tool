@@ -65,7 +65,9 @@ def check_executable(name: str) -> Path:
 def ensure_npm_packages():
     log("Installing npm packages.")
     npm_exe = check_executable("npm")
-    run_command([str(npm_exe), "install"], cwd=ROOT, description="npm install")
+    # Skip optional native modules (e.g. better-sqlite3) to avoid local build failures
+    # on machines without Visual C++ build tools. CI can still install optional deps.
+    run_command([str(npm_exe), "install", "--no-optional"], cwd=ROOT, description="npm install")
 
 
 def build_app():
