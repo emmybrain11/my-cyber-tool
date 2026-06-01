@@ -204,14 +204,16 @@ export default function Workbench() {
   async function streamCommand(payload: Record<string, any>, append: (s: string) => void, onFinish?: (code: number | null) => void) {
     const tryPaths = ["/pyapi/ws/run", "/ws/run"];
     let ws: WebSocket | null = null;
+    const triedUrls: string[] = [];
     for (const p of tryPaths) {
       try {
         const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
         const host = window.location.host;
         const url = p.startsWith("http") ? p : `${protocol}//${host}${p}`;
+        triedUrls.push(url);
         ws = new WebSocket(url);
         await new Promise<void>((resolve, reject) => {
-          const t = setTimeout(() => reject(new Error("timeout")), 3000);
+          const t = setTimeout(() => reject(new Error("timeout")), 5000);
           ws!.onopen = () => {
             clearTimeout(t);
             resolve();
@@ -231,7 +233,7 @@ export default function Workbench() {
       }
     }
     if (!ws) {
-      throw new Error("Unable to open WebSocket to backend");
+      throw new Error(`Unable to open WebSocket to backend; tried: ${triedUrls.join(", ")}`);
     }
     wsRef.current = ws;
 

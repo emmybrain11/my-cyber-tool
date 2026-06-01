@@ -12,13 +12,18 @@ export default defineConfig({
   ],
   server: {
     port: 8088,
-    proxy: {
-      "/pyapi": {
-        target: "http://127.0.0.1:8000",
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/pyapi/, ""),
-      },
-    },
+    proxy: (() => {
+      const backend = process.env.PYTHON_SERVICE_URL || "http://127.0.0.1:8000";
+      return {
+        "/pyapi": {
+          target: backend,
+          changeOrigin: true,
+          ws: true,
+          secure: false,
+          rewrite: (path: string) => path.replace(/^\/pyapi/, ""),
+        },
+      };
+    })(),
   },
   resolve: {
     alias: {
