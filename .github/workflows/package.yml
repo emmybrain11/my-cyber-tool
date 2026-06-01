@@ -33,7 +33,7 @@ jobs:
       - name: Install npm dependencies and build package
         run: |
           cd app
-          npm install
+          npm ci --omit=optional
           npm run build:package
 
       - name: Upload release ZIP artifact
